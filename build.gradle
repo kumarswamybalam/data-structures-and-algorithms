@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'groovy'
+    id 'jacoco'
 }
 
 group = 'com.balam'
@@ -18,5 +19,25 @@ dependencies {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform{
+        beforeTest { desc ->
+            logger.quiet "Executing \"${desc.name}\" [${desc.className}] ..."
+        }
+    }
+    jvmArgs = [
+            "-Dapp.config=/temp/${rootProject.name}",
+            "-Dlogs.dir=/temp/${rootProject.name}",
+            "-Denvironment=${System.getProperty('environment', 'local')}",
+            "-Dfile.encoding=UTF-8",
+            "-Dshared.logging.appender.name=console"
+    ]
+}
+
+test {
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    reports.html.outputLocation = file("${layout.buildDirectory.asFile.get()}/${System.properties.enviorment ?: 'local'}/reports/jacoco")
+    dependsOn test
 }
